@@ -157,7 +157,7 @@ function buildTrailPrints() {
 }
 
 function preloadHorseFrames() {
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 2; i++) {
     const image = new Image();
     image.src = `assets/horse-webp/frame_${String(i).padStart(2, "0")}.webp`;
   }
