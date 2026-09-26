@@ -1,0 +1,362 @@
+* { box-sizing: border-box; }
+
+html {
+  background: #20291d;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  color: #fff3d7;
+  font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  background: #20291d;
+}
+
+.demo-track {
+  height: 620vh;
+}
+
+.demo-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 620px;
+  overflow: hidden;
+  isolation: isolate;
+  background: #2a3824;
+}
+
+.scene-stack,
+.atmosphere {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.scene-stack { z-index: 1; }
+
+.scene {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: opacity;
+}
+
+.scene img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  transform: scale(1.08) translate3d(var(--scene-x, 0px), 0, 0);
+  transform-origin: 50% 68%;
+  will-change: transform;
+}
+
+.atmosphere {
+  z-index: 4;
+  pointer-events: none;
+}
+
+.sun {
+  position: absolute;
+  left: var(--sun-x, 64vw);
+  top: var(--sun-y, 18vh);
+  width: clamp(120px, 17vw, 290px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 228, 149, 0.58), rgba(255, 214, 119, 0.18) 42%, transparent 72%);
+  mix-blend-mode: screen;
+  will-change: left, top, opacity;
+}
+
+.light-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 72% 22%, rgba(255, 221, 138, 0.15), transparent 34%),
+    linear-gradient(180deg, rgba(255, 249, 224, 0.08), transparent 42%, rgba(22, 27, 17, 0.20));
+  mix-blend-mode: soft-light;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(20, 25, 16, 0.26), transparent 24%, transparent 70%, rgba(17, 21, 13, 0.30)),
+    radial-gradient(ellipse at center, transparent 46%, rgba(17, 22, 14, 0.22));
+}
+
+.grain {
+  position: absolute;
+  inset: -20%;
+  opacity: 0.21;
+  mix-blend-mode: soft-light;
+  background-image:
+    radial-gradient(rgba(83, 65, 46, 0.24) 0.7px, transparent 0.8px),
+    radial-gradient(rgba(255, 250, 229, 0.36) 0.75px, transparent 0.85px);
+  background-size: 5px 5px, 7px 7px;
+  background-position: 0 0, 2px 3px;
+  will-change: transform;
+}
+
+.horse-center {
+  position: absolute;
+  z-index: 8;
+  left: var(--horse-left, 10vw);
+  bottom: var(--horse-bottom, 28vh);
+  width: min(24.5vw, 35.6vh);
+  height: auto;
+  transform: translateX(-50%) translateY(var(--horse-bob, 0px)) rotate(var(--horse-tilt, 0deg));
+  transform-origin: 50% 74%;
+  pointer-events: none;
+  will-change: transform, left, height;
+}
+
+.horse-center img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: brightness(var(--horse-light, 1)) saturate(0.96) contrast(0.98) drop-shadow(0 20px 20px rgba(31, 28, 19, 0.22));
+}
+
+.horse-shadow {
+  position: absolute;
+  left: 20%;
+  right: 19%;
+  bottom: 1%;
+  height: 13px;
+  border-radius: 50%;
+  background: rgba(38, 35, 21, var(--shadow-opacity, 0.28));
+  filter: blur(5px);
+  transform: scaleX(var(--shadow-scale, 1));
+  transform-origin: center;
+}
+
+
+
+
+
+.portfolio-layer {
+  position: absolute;
+  z-index: 22;
+  inset: 0;
+  pointer-events: none;
+}
+
+.portfolio-landmark {
+  position: absolute;
+  left: 35vw;
+  top: 54vh;
+  opacity: 0;
+  transform: translate(-50%, -50%) translateY(-14px);
+  transition: opacity 420ms ease, transform 520ms cubic-bezier(.22, .8, .28, 1), color 300ms ease;
+  pointer-events: none;
+}
+
+.portfolio-landmark.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) translateY(0);
+}
+
+.portfolio-landmark.is-leaf {
+  color: #fff1cf;
+  text-shadow: 0 2px 16px rgba(30, 26, 15, 0.48);
+  animation: leaf-settle 900ms cubic-bezier(.18, .86, .24, 1) both;
+}
+
+.portfolio-landmark.is-hoof {
+  color: #34412f;
+  text-shadow: 0 1px 10px rgba(246, 239, 211, 0.46);
+}
+
+.project-link {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 2px 0;
+  color: inherit;
+  font-family: Baskerville, "Iowan Old Style", "Songti SC", serif;
+  font-size: clamp(14px, 1.12vw, 20px);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  pointer-events: none;
+}
+
+.portfolio-landmark.is-visible .project-link {
+  pointer-events: auto;
+}
+
+.project-name {
+  display: inline-block;
+  border-bottom: 1px solid currentColor;
+}
+
+.project-arrow {
+  display: inline-block;
+  font-size: 0.88em;
+  transition: transform 180ms ease;
+}
+
+.project-link:hover .project-arrow,
+.project-link:focus-visible .project-arrow {
+  transform: translate(3px, -3px);
+}
+
+.project-link:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 5px;
+  border-radius: 2px;
+}
+
+.hoof-trail {
+  position: absolute;
+  left: -132px;
+  top: 16px;
+  width: 120px;
+  height: 52px;
+  opacity: 0;
+  transition: opacity 220ms ease;
+  pointer-events: none;
+}
+
+.portfolio-landmark.is-hoof .hoof-trail {
+  opacity: 0.72;
+}
+
+.hoof-trail i {
+  position: absolute;
+  width: 14px;
+  height: 9px;
+  border: 2px solid currentColor;
+  border-radius: 52% 48% 48% 52%;
+  opacity: 0;
+  transform: rotate(-18deg) scale(0.55);
+  animation: hoof-stamp 760ms ease forwards;
+}
+
+.hoof-trail i::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 3px;
+  height: 2px;
+  border-top: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.hoof-trail i:nth-child(1) { left: 0; top: 34px; animation-delay: 60ms; }
+.hoof-trail i:nth-child(2) { left: 24px; top: 22px; animation-delay: 170ms; transform: rotate(12deg) scale(0.55); }
+.hoof-trail i:nth-child(3) { left: 48px; top: 8px; animation-delay: 280ms; }
+.hoof-trail i:nth-child(4) { left: 72px; top: -4px; animation-delay: 390ms; transform: rotate(12deg) scale(0.55); }
+.hoof-trail i:nth-child(5) { left: 96px; top: -15px; animation-delay: 500ms; }
+
+@keyframes leaf-settle {
+  0% { transform: translate(-50%, -50%) translate(-18px, -70px) rotate(-13deg); opacity: 0; }
+  55% { transform: translate(-50%, -50%) translate(8px, 8px) rotate(8deg); opacity: 1; }
+  78% { transform: translate(-50%, -50%) translate(-4px, -3px) rotate(-3deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) translateY(0) rotate(0deg); opacity: 1; }
+}
+
+@keyframes hoof-stamp {
+  0% { opacity: 0; transform: rotate(var(--hoof-rotation, -18deg)) scale(1.3); }
+  38% { opacity: 0.9; transform: rotate(var(--hoof-rotation, -18deg)) scale(0.82); }
+  100% { opacity: 0.72; transform: rotate(var(--hoof-rotation, -18deg)) scale(1); }
+}
+
+.trail-svg {
+  position: absolute;
+  z-index: 7;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.trail-line {
+  opacity: 0.82;
+  filter: drop-shadow(0 0 7px rgba(110, 132, 214, 0.45));
+}
+
+#trailPrints path {
+  fill: rgba(220, 229, 255, 0.94);
+  filter: drop-shadow(0 2px 3px rgba(14, 18, 42, 0.35));
+}
+
+.hoof-layer {
+  position: absolute;
+  z-index: 16;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hoof-link {
+  position: absolute;
+  left: var(--hoof-left, 30vw);
+  bottom: var(--hoof-bottom, 20vh);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(255, 241, 209, 0.96);
+  text-decoration: none;
+  text-shadow: 0 2px 12px rgba(27, 23, 14, 0.62);
+  opacity: 0;
+  transform: translate(-50%, 50%) scale(0.55);
+  pointer-events: none;
+  transition: opacity 260ms ease, transform 520ms cubic-bezier(0.2, 0.85, 0.25, 1);
+}
+
+.hoof-link.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 50%) scale(1);
+  pointer-events: auto;
+}
+
+.hoof-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-2px);
+  transition: opacity 260ms ease 150ms, transform 260ms ease 150ms;
+}
+
+.hoof-link.is-visible .hoof-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.hoof-label b {
+  font-weight: 500;
+  transition: transform 160ms ease;
+}
+
+.hoof-link:hover .hoof-label b,
+.hoof-link:focus-visible .hoof-label b {
+  transform: translate(2px, -2px);
+}
+
+.hoof-link:focus-visible { outline: none; }
+
+@media (max-width: 720px) {
+  .demo-header { top: 12px; left: 12px; right: 12px; }
+  .demo-header > span:last-child { display: none; }
+  .chapter { left: 16px; font-size: 23px; }
+  .progress { right: 12px; }
+  .progress-track { height: 30vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue i { animation: none; }
+}
