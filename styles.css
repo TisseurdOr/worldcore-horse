@@ -111,10 +111,12 @@ body {
   transform: translateX(-50%) translateY(var(--horse-bob, 0px)) rotate(var(--horse-tilt, 0deg));
   transform-origin: 50% 74%;
   pointer-events: none;
+  background: url("assets/horse-webp/frame_01.webp") center / contain no-repeat;
   will-change: transform, left, height;
 }
 
-.horse-center img {
+.horse-center canvas {
+  position: relative;
   display: block;
   width: 100%;
   height: auto;

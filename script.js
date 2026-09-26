@@ -2,7 +2,10 @@ const track = document.querySelector("#demoTrack");
 const stage = document.querySelector("#demoStage");
 const scenes = [...document.querySelectorAll(".scene")];
 const horse = document.querySelector("#horseCenter");
-const horseFrame = document.querySelector("#centerHorseFrame");
+const horseCanvas = document.querySelector("#centerHorseCanvas");
+const horseCtx = horseCanvas.getContext("2d");
+const horseSprite = new Image();
+let horseSpriteReady = false;
 const sun = document.querySelector("#sun");
 const grain = document.querySelector(".grain");
 const chapter = document.querySelector("#chapter");
@@ -156,12 +159,29 @@ function buildTrailPrints() {
   }
 }
 
-function preloadHorseFrames() {
-  for (let i = 1; i <= FRAME_COUNT; i++) {
-    const image = new Image();
-    image.src = `assets/horse-webp/frame_${String(i).padStart(2, "0")}.webp`;
-  }
+function drawHorseFrame() {
+  if (!horseSpriteReady) return;
+  const column = frameIndex % 4;
+  const row = Math.floor(frameIndex / 4);
+  horseCtx.clearRect(0, 0, horseCanvas.width, horseCanvas.height);
+  horseCtx.drawImage(
+    horseSprite,
+    column * 854,
+    row * 480,
+    854,
+    480,
+    0,
+    0,
+    854,
+    480
+  );
 }
+
+horseSprite.onload = () => {
+  horseSpriteReady = true;
+  drawHorseFrame();
+};
+horseSprite.src = "assets/horse-sprite.webp";
 
 function readTarget() {
   const max = track.offsetHeight - innerHeight;
@@ -201,8 +221,7 @@ function updateHorse(now, p, position) {
   const frameInterval = reducedMotion ? 250 : 150 / SPEED;
   if (now - lastFrame > frameInterval) {
     frameIndex = (frameIndex + 1) % FRAME_COUNT;
-    const number = String(frameIndex + 1).padStart(2, "0");
-    horseFrame.src = `assets/horse-webp/frame_${number}.webp`;
+    drawHorseFrame();
     lastFrame = now;
   }
 
@@ -276,5 +295,4 @@ addEventListener("resize", () => {
 });
 readTarget();
 buildTrail();
-preloadHorseFrames();
 requestAnimationFrame(render);
