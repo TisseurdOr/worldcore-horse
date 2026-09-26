@@ -166,14 +166,14 @@ function drawHorseFrame() {
   horseCtx.clearRect(0, 0, horseCanvas.width, horseCanvas.height);
   horseCtx.drawImage(
     horseSprite,
-    column * 854,
-    row * 480,
-    854,
+    column * 480,
+    row * 270,
     480,
+    270,
     0,
     0,
-    854,
-    480
+    480,
+    270
   );
 }
 
