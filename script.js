@@ -72,7 +72,9 @@ function getHorsePositionAtProgress(p) {
   const mobile = innerWidth <= 720;
   const start = mobile ? 30 : 20;
   const travel = mobile ? 40 : 60;
-  const left = start + smoothstep(0, 1, p) * travel;
+  const baseLeft = start + smoothstep(0, 0.84, p) * travel;
+  const exitLeft = smoothstep(0.80, 1, p) * 26;
+  const left = baseLeft + exitLeft;
   const position = p * (scenes.length - 1);
   const bottom = smoothInterpolate(groundBottomVh, position);
   const centerX = (left / 100) * innerWidth;
@@ -211,6 +213,8 @@ function updateHorse(now, p, position) {
   const bob = reducedMotion ? 0 : Math.sin(now * 0.015 * SPEED) * 7;
   const tilt = reducedMotion ? 0 : Math.sin(now * 0.015 * SPEED + Math.PI / 2) * 0.45;
 
+  const horseOpacity = 1 - smoothstep(0.84, 0.99, p);
+  horse.style.opacity = horseOpacity.toFixed(3);
   horse.style.setProperty("--horse-left", `${left}vw`);
   horse.style.setProperty("--horse-bottom", `${bottom}vh`);
   horse.style.setProperty("--horse-bob", `${bob}px`);
