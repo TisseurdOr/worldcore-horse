@@ -195,7 +195,7 @@ function updateHorse(now, p, position) {
   if (!reducedMotion && now - lastFrame > frameInterval) {
     frameIndex = (frameIndex + 1) % FRAME_COUNT;
     const number = String(frameIndex + 1).padStart(2, "0");
-    horseFrame.src = `assets/horse-v4/frame_${number}.png`;
+    horseFrame.src = `assets/horse-webp/frame_${number}.webp`;
     lastFrame = now;
   }
 
@@ -269,4 +269,5 @@ addEventListener("resize", () => {
 });
 readTarget();
 buildTrail();
+preloadHorseFrames();
 requestAnimationFrame(render);

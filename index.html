@@ -6,38 +6,39 @@
   <meta name="theme-color" content="#293421" />
   <title>Worldcore — 彩琳的赛道手账</title>
   <meta name="description" content="彩琳的设计与开发作品集，以马从左向右奔跑的 2D 叙事方式展示项目与联系信息。" />
-  <link rel="stylesheet" href="styles.css?v=trail-10" />
+  <link rel="preload" as="image" href="assets/backgrounds-webp/bg_0.webp" />
+  <link rel="stylesheet" href="styles.css?v=trail-11" />
 </head>
 <body>
   <div class="demo-track" id="demoTrack">
     <section class="demo-stage" id="demoStage">
       <div class="scene-stack" aria-hidden="true">
         <div class="scene" data-scene="0" data-label="森林深处">
-          <img src="assets/backgrounds-v2/bg_0.png" alt="" />
+          <img src="assets/backgrounds-webp/bg_0.webp" alt="" loading="eager" decoding="async" />
         </div>
         <div class="scene" data-scene="1" data-label="森林">
-          <img src="assets/backgrounds-v2/bg_1.png" alt="" />
+          <img src="assets/backgrounds-webp/bg_1.webp" alt="" loading="eager" decoding="async" />
         </div>
         <div class="scene" data-scene="2" data-label="森林到草地">
-          <img src="assets/backgrounds-v2/bg_2.png" alt="" />
+          <img src="assets/backgrounds-webp/bg_2.webp" alt="" loading="eager" decoding="async" />
         </div>
         <div class="scene" data-scene="3" data-label="草地">
-          <img src="assets/backgrounds-v2/bg_3.png" alt="" />
+          <img src="assets/backgrounds-webp/bg_3.webp" alt="" loading="lazy" decoding="async" />
         </div>
         <div class="scene" data-scene="4" data-label="草地傍晚">
-          <img src="assets/backgrounds-v2/bg_4.png" alt="" />
+          <img src="assets/backgrounds-webp/bg_4.webp" alt="" loading="lazy" decoding="async" />
         </div>
         <div class="scene" data-scene="5" data-label="牧场">
-          <img src="assets/backgrounds-v2/bg_5.png" alt="" />
+          <img src="assets/backgrounds-webp/bg_5.webp" alt="" loading="lazy" decoding="async" />
         </div>
         <div class="scene" data-scene="6" data-label="林间傍晚">
-          <img src="assets/backgrounds-v2/bg_6.png" alt="" />
+          <img src="assets/backgrounds-webp/bg_6.webp" alt="" loading="lazy" decoding="async" />
         </div>
         <div class="scene" data-scene="7" data-label="草原傍晚">
-          <img src="assets/backgrounds-v2/bg_7.png" alt="" />
+          <img src="assets/backgrounds-webp/bg_7.webp" alt="" loading="lazy" decoding="async" />
         </div>
         <div class="scene" data-scene="8" data-label="森林晚">
-          <img src="assets/backgrounds-v2/bg_8.png" alt="" />
+          <img src="assets/backgrounds-webp/bg_8.webp" alt="" loading="lazy" decoding="async" />
         </div>
       </div>
 
@@ -63,7 +64,7 @@
 
       <div class="horse-center" id="horseCenter" aria-label="在画面中央奔跑的马">
         <div class="horse-shadow"></div>
-        <img id="centerHorseFrame" src="assets/horse-v4/frame_01.png" alt="" />
+        <img id="centerHorseFrame" src="assets/horse-webp/frame_01.webp" alt="" decoding="async" />
       </div>
 
 
@@ -114,6 +115,6 @@
 
     </section>
   </div>
-  <script src="script.js?v=trail-10"></script>
+  <script src="script.js?v=trail-11"></script>
 </body>
 </html>
