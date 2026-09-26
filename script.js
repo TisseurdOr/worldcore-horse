@@ -156,6 +156,13 @@ function buildTrailPrints() {
   }
 }
 
+function preloadHorseFrames() {
+  for (let i = 1; i <= 4; i++) {
+    const image = new Image();
+    image.src = `assets/horse-webp/frame_${String(i).padStart(2, "0")}.webp`;
+  }
+}
+
 function readTarget() {
   const max = track.offsetHeight - innerHeight;
   target = clamp(-track.getBoundingClientRect().top / max);
