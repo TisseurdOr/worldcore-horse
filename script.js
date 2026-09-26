@@ -157,7 +157,7 @@ function buildTrailPrints() {
 }
 
 function preloadHorseFrames() {
-  for (let i = 1; i <= 2; i++) {
+  for (let i = 1; i <= FRAME_COUNT; i++) {
     const image = new Image();
     image.src = `assets/horse-webp/frame_${String(i).padStart(2, "0")}.webp`;
   }
@@ -198,8 +198,8 @@ function updateHorse(now, p, position) {
   horse.style.setProperty("--shadow-opacity", shadow.toFixed(3));
   horse.style.setProperty("--shadow-scale", `${1 - Math.abs(bob) / 60}`);
 
-  const frameInterval = 150 / SPEED;
-  if (!reducedMotion && now - lastFrame > frameInterval) {
+  const frameInterval = reducedMotion ? 250 : 150 / SPEED;
+  if (now - lastFrame > frameInterval) {
     frameIndex = (frameIndex + 1) % FRAME_COUNT;
     const number = String(frameIndex + 1).padStart(2, "0");
     horseFrame.src = `assets/horse-webp/frame_${number}.webp`;
