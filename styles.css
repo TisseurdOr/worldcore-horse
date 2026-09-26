@@ -115,6 +115,10 @@ body {
   will-change: transform, left, height;
 }
 
+.horse-center.is-ready {
+  background-image: none;
+}
+
 .horse-center canvas {
   position: relative;
   display: block;

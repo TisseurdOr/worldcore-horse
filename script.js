@@ -179,6 +179,7 @@ function drawHorseFrame() {
 
 horseSprite.onload = () => {
   horseSpriteReady = true;
+  horse.classList.add("is-ready");
   drawHorseFrame();
 };
 horseSprite.src = "assets/horse-sprite.webp";
