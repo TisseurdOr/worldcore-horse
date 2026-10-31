@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>简历</title>
+  <style>
+    /* 字体：macOS Songti SC 对应 Jake's 的中文宋体；STSong 对应 billryan 的 Adobe 宋体同类衬线。不嵌入商业字体。 */
+    :root {
+      --ink: #1c1c1c;
+      --blue: #1a5276;
+      --blue-deep: #143d5c;
+      --muted: #3d3d3a;
+      --rule: #1a5276;
+      --paper: #fffefb;
+      --job: #e7f1f7;
+      --job-edge: #1a5276;
+      --proj: #e8f3ea;
+      --proj-edge: #3d6b4f;
+      --edu: #f4f7f8;
+      --line: #d5d1c8;
+      --serif: "Songti SC", "STSongti-SC-Regular", "STSong", "Hiragino Mincho ProN", "Source Han Serif SC", "Noto Serif CJK SC", serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: #eceae4; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #eceae4;
+      font-family: var(--serif);
+      font-size: 10px;
+      line-height: 1.38;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    .page {
+      width: 210mm;
+      margin: 10mm auto;
+      padding: 9mm 11mm 10mm;
+      background: var(--paper);
+      box-shadow: 0 10px 28px rgba(20, 20, 19, .12);
+    }
+
+    .masthead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8mm;
+      align-items: start;
+      padding-bottom: 2.2mm;
+      border-bottom: 1.6px solid var(--blue);
+    }
+    .name {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1;
+      letter-spacing: .12em;
+      font-weight: 700;
+    }
+    .headline {
+      margin: 1.6mm 0 0;
+      color: var(--blue);
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .tagline {
+      margin: .6mm 0 0;
+      font-size: 10.5px;
+      letter-spacing: .04em;
+    }
+    .contact {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: .4mm;
+      padding-top: .4mm;
+      font-size: 9.2px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .contact b {
+      display: inline-block;
+      min-width: 3.2em;
+      margin-right: 1.2mm;
+      color: var(--blue);
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .section { margin-top: 3.4mm; }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 2.4mm;
+      margin: 0 0 1.8mm;
+      color: var(--blue);
+      font-size: 13.5px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      line-height: 1.1;
+    }
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .bar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: baseline;
+      gap: 4mm;
+      padding: 1.15mm 2.2mm;
+      break-after: avoid;
+    }
+    .bar.job { background: var(--job); border-left: 3px solid var(--job-edge); }
+    .bar.proj { background: var(--proj); border-left: 3px solid var(--proj-edge); margin-top: 2.4mm; }
+    .bar-title {
+      color: var(--blue-deep);
+      font-size: 11.2px;
+      font-weight: 700;
+    }
+    .bar-dates {
+      font-variant-numeric: tabular-nums;
+      font-size: 9.4px;
+      white-space: nowrap;
+    }
+
+    .block { margin: 1.5mm 0 0 1.2mm; break-inside: auto; }
+    .item-title {
+      margin: 1.5mm 0 .4mm;
+      font-size: 10.6px;
+      font-weight: 700;
+      break-after: avoid;
+    }
+    .item-title .sub {
+      margin-left: 1.6mm;
+      color: var(--muted);
+      font-size: 9.4px;
+      font-weight: 600;
+    }
+
+    .fact {
+      display: grid;
+      grid-template-columns: 18.5mm minmax(0, 1fr);
+      gap: 1.2mm;
+      margin-top: .55mm;
+    }
+    .fact-label {
+      color: var(--blue);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .fact ul { margin: 0; padding-left: 3.4mm; }
+    .fact li { margin: 0 0 .35mm; padding-left: .2mm; }
+    .fact li::marker { color: #8a867c; }
+    .keywords { color: var(--muted); }
+
+    .skill-row {
+      display: grid;
+      grid-template-columns: 22mm minmax(0, 1fr);
+      gap: 2mm;
+      padding: .45mm 0;
+    }
+    .skill-row + .skill-row { border-top: 1px dotted var(--line); }
+    .skill-label { color: var(--blue); font-weight: 700; }
+
+    .edu {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4mm;
+      align-items: baseline;
+      padding: 1.2mm 2.2mm;
+      background: var(--edu);
+      border-left: 3px solid var(--blue);
+    }
+    .edu + .edu { margin-top: 1.3mm; }
+    .edu-school { color: var(--blue-deep); font-size: 11px; font-weight: 700; }
+    .edu-degree { margin-left: 2mm; font-weight: 650; }
+    .edu-program { margin-top: .35mm; color: var(--muted); font-size: 9.2px; }
+
+    @page { size: A4; margin: 8mm 10mm 8mm; }
+    @media print {
+      html, body { background: white; }
+      .page { width: auto; margin: 0; padding: 0; box-shadow: none; background: white; }
+      .bar, .edu { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      a { color: inherit; }
+    }
+  </style>
+</head>
+<body>
+  <main id="resume" class="page"></main>
+  <script id="resume-data" type="application/json">__RESUME_JSON__</script>
+  <script>
+    function renderResume(data) {
+      const root = document.getElementById("resume");
+      root.replaceChildren();
+      const el = (tag, cls, text) => {
+        const node = document.createElement(tag);
+        if (cls) node.className = cls;
+        if (text != null) node.textContent = String(text);
+        return node;
+      };
+      const texts = (items) => (items || []).map((item) => (typeof item === "string" ? item : item.text)).filter(Boolean);
+      const bullets = (items) => {
+        const ul = document.createElement("ul");
+        texts(items).forEach((text) => ul.append(el("li", "", text)));
+        return ul;
+      };
+      const fact = (label, content) => {
+        const row = el("div", "fact");
+        row.append(el("div", "fact-label", label));
+        const body = el("div", "");
+        if (content instanceof Node) body.append(content);
+        else body.textContent = content || "";
+        row.append(body);
+        return row;
+      };
+      const section = (title) => {
+        const wrap = el("section", "section");
+        wrap.append(el("h2", "section-title", title));
+        root.append(wrap);
+        return wrap;
+      };
+
+      const p = data.profile || {};
+      document.title = [p.name, p.headline].filter(Boolean).join("｜");
+      const head = el("header", "masthead");
+      const id = el("div", "");
+      id.append(el("h1", "name", p.name || ""));
+      if (p.headline) id.append(el("p", "headline", p.headline));
+      if (p.tagline) id.append(el("p", "tagline", p.tagline));
+      head.append(id);
+      const contacts = el("div", "contact");
+      (p.contacts || []).forEach((item) => {
+        const line = el("div", "");
+        if (item.label) line.append(el("b", "", item.label));
+        const value = item.value || "";
+        if (item.url && /^(https?:|mailto:)/.test(item.url)) {
+          const a = el("a", "", value);
+          a.href = item.url;
+          line.append(a);
+        } else {
+          line.append(document.createTextNode(value));
+        }
+        contacts.append(line);
+      });
+      head.append(contacts);
+      root.append(head);
+
+      if ((data.experience || []).length) {
+        const s = section("工作经历");
+        data.experience.forEach((exp) => {
+          const bar = el("div", "bar job");
+          const left = el("div", "bar-title", [exp.company, exp.team].filter(Boolean).join(" ｜ "));
+          bar.append(left, el("div", "bar-dates", exp.dates || ""));
+          s.append(bar);
+          (exp.projects || []).forEach((project) => {
+            const block = el("div", "block");
+            const title = el("div", "item-title");
+            title.append(document.createTextNode(project.name || ""));
+            if (project.subtitle) title.append(el("span", "sub", "— " + project.subtitle));
+            block.append(title);
+            if (texts(project.background).length) block.append(fact("背景：", bullets(project.background)));
+            if (texts(project.impact).length) block.append(fact("指标与效果：", bullets(project.impact)));
+            if (texts(project.responsibilities).length) block.append(fact("我的职责：", bullets(project.responsibilities)));
+            if ((project.keywords || []).length) block.append(fact("技术关键词：", el("div", "keywords", project.keywords.join(" · "))));
+            s.append(block);
+          });
+        });
+      }
+
+      if ((data.projects || []).length) {
+        const s = section("技术项目");
+        data.projects.forEach((project) => {
+          const bar = el("div", "bar proj");
+          const left = el("div", "bar-title", project.name || "");
+          const rightBits = [project.role, project.dates].filter(Boolean).join(" · ");
+          bar.append(left, el("div", "bar-dates", rightBits));
+          s.append(bar);
+          const block = el("div", "block");
+          if (project.subtitle) block.append(el("div", "item-title", project.subtitle));
+          if (texts(project.description).length) block.append(fact("项目描述：", bullets(project.description)));
+          if (project.stack) block.append(fact("技术栈：", project.stack));
+          if (texts(project.responsibilities).length) block.append(fact("核心职责：", bullets(project.responsibilities)));
+          if (texts(project.highlights).length) block.append(fact("技术亮点：", bullets(project.highlights)));
+          if (texts(project.outcomes).length) block.append(fact("项目成果：", bullets(project.outcomes)));
+          s.append(block);
+        });
+      }
+
+      const groups = data.skill_groups || [];
+      if (groups.length || (data.skills || []).length) {
+        const s = section("技能");
+        if (groups.length) {
+          groups.forEach((group) => {
+            const row = el("div", "skill-row");
+            row.append(el("div", "skill-label", group.label), el("div", "", group.items));
+            s.append(row);
+          });
+        } else {
+          data.skills.forEach((item) => s.append(el("div", "", item)));
+        }
+      }
+
+      if ((data.education || []).length) {
+        const s = section("教育经历");
+        data.education.forEach((item) => {
+          const row = el("div", "edu");
+          const main = el("div", "");
+          const line = el("div", "");
+          line.append(el("span", "edu-school", item.institution || ""));
+          line.append(el("span", "edu-degree", item.degree || ""));
+          main.append(line);
+          if (item.program) main.append(el("div", "edu-program", item.program));
+          row.append(main, el("div", "bar-dates", item.dates || ""));
+          s.append(row);
+        });
+      }
+    }
+    window.renderResume = renderResume;
+    window.addEventListener("message", (event) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data && event.data.type === "resume-data") renderResume(event.data.payload);
+    });
+    const raw = document.getElementById("resume-data").textContent.trim();
+    const placeholder = "__RESUME_" + "JSON__";
+    if (raw && !raw.includes(placeholder)) renderResume(JSON.parse(raw));
+  </script>
+</body>
+</html>

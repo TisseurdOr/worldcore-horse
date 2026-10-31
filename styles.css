@@ -355,6 +355,18 @@ body {
 
 .hoof-link:focus-visible { outline: none; }
 
+.demo-header a {
+  color: inherit;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+}
+
+.demo-header a:hover,
+.demo-header a:focus-visible {
+  text-decoration: underline;
+}
+
 @media (max-width: 720px) {
   .demo-header { top: 12px; left: 12px; right: 12px; }
   .demo-header > span:last-child { display: none; }

@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>简历编辑器</title>
+  <style>
+    :root {
+      --bg: #e8e2d8;
+      --paper: #f4f1eb;
+      --ink: #242421;
+      --muted: #8d877d;
+      --rust: #9d3d32;
+      --blue: #9d3d32;
+      --line: #e3dbd0;
+      --danger: #8c3a32;
+      --sans: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+      --serif: "Songti SC", "Iowan Old Style", Palatino, "Times New Roman", serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: var(--serif);
+      font-size: 15px;
+    }
+    button, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .top {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 18px;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { font-weight: 650; letter-spacing: .16em; font-size: 13px; color: var(--rust); }
+    .hint { color: var(--muted); font-size: 12px; font-family: var(--sans); }
+    .spacer { flex: 1; }
+    .status { font-size: 12px; color: var(--muted); min-width: 4em; text-align: right; font-family: var(--sans); }
+    .status.dirty { color: #8a5a12; }
+    .keep { margin: 2px 16px 12px 44px; color: var(--muted); font-size: 12px; font-family: var(--sans); line-height: 1.5; }
+    .btn {
+      border: 1px solid var(--line);
+      background: transparent;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-family: var(--sans);
+      font-size: 13px;
+    }
+    .btn.primary { background: var(--rust); color: white; border-color: var(--rust); }
+    .workspace { height: calc(100% - 52px); display: grid; grid-template-columns: 35% 1fr; }
+    .editor { overflow: auto; background: var(--paper); padding: 28px 32px 80px 18px; }
+    .kicker {
+      margin: 0 0 8px 48px;
+      color: var(--rust);
+      font-family: var(--sans);
+      font-size: 11px;
+      letter-spacing: .18em;
+    }
+    .preview-pane { overflow: auto; background: #e7e1d6; padding: 28px 24px 48px; }
+    .preview-holder { width: 900px; margin: 0 auto 40px; background: #fffdf8; box-shadow: 0 18px 50px rgba(70, 48, 24, .08); transform-origin: top center; }
+    iframe { width: 900px; border: 0; background: #fffdf8; display: block; }
+    .ms-row { border-top: 1px solid var(--line); }
+    .ms-tab {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 13px 0;
+      border: 0;
+      background: transparent;
+      text-align: left;
+    }
+    .ms-num {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      color: #c2bbb0;
+      font-family: var(--sans);
+      font-size: 12px;
+    }
+    .ms-row.open .ms-num { color: white; background: var(--rust); border-radius: 50%; }
+    .ms-title { font-size: 17px; font-weight: 650; }
+    .ms-hint {
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 12px;
+      max-width: 11em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ms-body { padding: 0 0 16px 44px; }
+    .ms-body[hidden] { display: none; }
+    .row { display: grid; grid-template-columns: 72px 1fr; gap: 8px; align-items: start; margin-bottom: 10px; }
+    .label {
+      padding-top: 8px;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 11px;
+      letter-spacing: .08em;
+    }
+    input, textarea {
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid #ddd4c8;
+      border-radius: 0;
+      background: transparent;
+      padding: 8px 0;
+      font-family: var(--serif);
+    }
+    textarea { min-height: 38px; resize: vertical; line-height: 1.45; }
+    textarea.grow { overflow: hidden; }
+    .fold {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      margin-bottom: 8px;
+    }
+    .fold summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+      padding: 7px 8px;
+    }
+    .fold summary::-webkit-details-marker { display: none; }
+    .fold summary::before { content: "▸"; color: var(--blue); flex: none; }
+    .fold[open] summary::before { content: "▾"; }
+    .fold-label { color: var(--blue); font-size: 12px; font-weight: 700; flex: none; }
+    .fold-preview {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .fold[open] .fold-preview { display: none; }
+    .fold-body { padding: 0 8px 8px; }
+    .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 0 0 8px; }
+    .actions h3 { margin: 0 auto 0 0; font-size: 13px; }
+    .linkish {
+      border: 0;
+      background: transparent;
+      color: var(--blue);
+      padding: 0;
+      font-size: 12px;
+    }
+    .linkish.danger { color: var(--danger); }
+    .bullet { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-bottom: 6px; }
+    .error { color: var(--danger); font-size: 12px; }
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(28, 28, 28, .35);
+      z-index: 20;
+    }
+    .modal[hidden] { display: none; }
+    .modal-card {
+      width: min(420px, calc(100% - 32px));
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 16px 40px rgba(20, 20, 19, .18);
+    }
+    .modal-card h2 { margin: 0 0 8px; font-size: 18px; }
+    .modal-card p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+    .modal-card input { margin-bottom: 8px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">稿纸</div>
+    <div class="hint">只保存在这台浏览器里，不会上传</div>
+    <div class="spacer"></div>
+    <div id="status" class="status">已载入</div>
+    <button class="btn" id="import" type="button">导入</button>
+    <input id="import-file" type="file" accept="application/json,.json" hidden>
+    <button class="btn" id="export" type="button">导出文件</button>
+    <button class="btn" id="print" type="button">打印</button>
+    <button class="btn primary" id="save" type="button">保存</button>
+    <button class="btn primary" id="pdf" type="button">导出 PDF</button>
+  </header>
+  <div id="pdf-dialog" class="modal" hidden>
+    <form id="pdf-form" class="modal-card">
+      <h2>导出 PDF</h2>
+      <p>接下来会打开打印窗口。请选择“存储为 PDF”，并把文件名改成下面这个。</p>
+      <input id="pdf-name" type="text" required placeholder="文件名">
+      <p id="pdf-error" class="error"></p>
+      <div class="modal-actions">
+        <button class="btn" id="pdf-cancel" type="button">取消</button>
+        <button class="btn primary" type="submit">打开打印窗口</button>
+      </div>
+    </form>
+  </div>
+  <div class="workspace">
+    <aside class="editor" id="editor"></aside>
+    <div class="preview-pane">
+      <div class="preview-holder">
+        <iframe id="preview" title="简历预览" src="preview.html"></iframe>
+      </div>
+    </div>
+  </div>
+  <script>
+    const editor = document.getElementById("editor");
+    const status = document.getElementById("status");
+    const frame = document.getElementById("preview");
+    let state = null;
+    let origin = null;
+    let frameReady = false;
+    let dirty = false;
+    let profileTimer = null;
+    let profileSaveGen = 0;
+    const openFolds = new Set();
+    const openCards = new Set();
+
+    const el = (tag, cls, text) => {
+      const node = document.createElement(tag);
+      if (cls) node.className = cls;
+      if (text != null) node.textContent = text;
+      return node;
+    };
+    const textOf = (item) => (item && typeof item === "object" ? item.text || "" : item || "");
+    const blankBullet = () => ({ text: "", verification: "user_attested", source_note: "网页编辑器" });
+
+    function setStatus(text, isDirty) {
+      status.textContent = text;
+      status.classList.toggle("dirty", !!isDirty);
+    }
+    function markDirty() {
+      dirty = true;
+      setStatus("未保存", true);
+    }
+    function fitPreview() {
+      const pane = document.querySelector(".preview-pane");
+      const holder = document.querySelector(".preview-holder");
+      const scale = Math.min(1, (pane.clientWidth - 48) / 900);
+      holder.style.transform = `scale(${scale})`;
+    }
+    function push() {
+      if (!frameReady || !state) return;
+      frame.contentWindow.postMessage({ type: "resume-data", payload: state }, location.origin);
+      requestAnimationFrame(() => {
+        const doc = frame.contentDocument;
+        if (!doc) return;
+        frame.style.height = Math.max(doc.documentElement.scrollHeight, 900) + "px";
+        fitPreview();
+      });
+    }
+    function setPath(path, value) {
+      const parts = path.split(".");
+      let cur = state;
+      for (let i = 0; i < parts.length - 1; i++) cur = cur[parts[i]];
+      cur[parts[parts.length - 1]] = value;
+      markDirty();
+      push();
+      if (path.startsWith("profile.")) scheduleProfileSave();
+    }
+    function withoutProfile(data) {
+      const copy = structuredClone(data);
+      delete copy.profile;
+      return JSON.stringify(copy);
+    }
+    function otherDirty() {
+      return !!(state && origin) && withoutProfile(state) !== withoutProfile(origin);
+    }
+    function scheduleProfileSave() {
+      clearTimeout(profileTimer);
+      profileTimer = setTimeout(() => {
+        saveProfile().catch((error) => setStatus(error.message, true));
+      }, 400);
+    }
+    const RESUME_KEY = "worldcore-resume";
+    const PROFILE_KEY = "worldcore-profile";
+    function blankResume() {
+      return {
+        mode: "source_grounded",
+        profile: { name: "", headline: "", tagline: "", contacts: [] },
+        experience: [],
+        projects: [],
+        education: [],
+        skill_groups: [],
+        skills: []
+      };
+    }
+    function writeProfile(profile) {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      const raw = localStorage.getItem(RESUME_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      data.profile = profile;
+      localStorage.setItem(RESUME_KEY, JSON.stringify(data));
+    }
+    async function saveProfile() {
+      const gen = ++profileSaveGen;
+      const profile = structuredClone(state.profile);
+      if (!String(profile.name || "").trim()) {
+        setStatus("姓名不能为空", true);
+        return;
+      }
+      writeProfile(profile);
+      if (gen !== profileSaveGen) return;
+      origin.profile = structuredClone(profile);
+      if (otherDirty()) setStatus("未保存", true);
+      else {
+        dirty = false;
+        setStatus("基本信息已保存", false);
+      }
+    }
+    function fitTextarea(area) {
+      area.style.height = "auto";
+      area.style.height = Math.max(area.scrollHeight, 38) + "px";
+    }
+    function field(label, path, value, multiline) {
+      const row = el("div", "row");
+      row.append(el("div", "label", label));
+      const input = document.createElement(multiline ? "textarea" : "input");
+      input.value = value || "";
+      input.dataset.path = path;
+      if (multiline) input.className = "grow";
+      row.append(input);
+      return row;
+    }
+    function listField(label, path, items) {
+      const row = el("div", "row");
+      row.append(el("div", "label", label));
+      const input = document.createElement("input");
+      input.value = (items || []).join(" · ");
+      input.dataset.path = path;
+      input.dataset.kind = "list";
+      row.append(input);
+      return row;
+    }
+    function bullets(label, path, items) {
+      const details = el("details", "fold");
+      details.dataset.fold = path;
+      details.open = openFolds.has(path);
+      const texts = (items || []).map(textOf).map((text) => text.trim()).filter(Boolean);
+      const clipped = (texts[0] || "空").replace(/\s+/g, " ");
+      const preview = (clipped.length > 36 ? clipped.slice(0, 36) + "…" : clipped) + (texts.length > 1 ? ` · ${texts.length} 条` : "");
+      const summary = document.createElement("summary");
+      summary.append(el("span", "fold-label", label), el("span", "fold-preview", preview));
+      const body = el("div", "fold-body");
+      (items || []).forEach((item, index) => {
+        const line = el("div", "bullet");
+        const area = document.createElement("textarea");
+        area.className = "grow";
+        area.value = textOf(item);
+        area.dataset.path = `${path}.${index}.text`;
+        const remove = el("button", "linkish danger", "删除");
+        remove.type = "button";
+        remove.dataset.action = "remove";
+        remove.dataset.path = `${path}.${index}`;
+        line.append(area, remove);
+        body.append(line);
+      });
+      const add = el("button", "linkish", "添加一条");
+      add.type = "button";
+      add.dataset.action = "add-bullet";
+      add.dataset.path = path;
+      body.append(add);
+      details.append(summary, body);
+      return details;
+    }
+    function headerRow(title, path, index, length) {
+      const head = el("div", "actions");
+      head.append(el("h3", "", title));
+      if (index > 0) head.append(moveButton("上移", path, -1));
+      if (index < length - 1) head.append(moveButton("下移", path, 1));
+      const remove = el("button", "linkish danger", "删除这段");
+      remove.type = "button";
+      remove.dataset.action = "remove";
+      remove.dataset.path = path;
+      head.append(remove);
+      return head;
+    }
+    function moveButton(label, path, delta) {
+      const button = el("button", "linkish", label);
+      button.type = "button";
+      button.dataset.action = "move";
+      button.dataset.path = path;
+      button.dataset.delta = String(delta);
+      return button;
+    }
+
+    function clip(text, limit = 26) {
+      const value = String(text || "").replace(/\s+/g, " ").trim();
+      if (!value) return "";
+      return value.length > limit ? value.slice(0, limit) + "…" : value;
+    }
+    function manuscriptRow(id, title, hint, nodes) {
+      const open = openCards.has(id);
+      const row = el("div", open ? "ms-row open" : "ms-row");
+      row.dataset.card = id;
+      const tab = el("button", "ms-tab");
+      tab.type = "button";
+      tab.dataset.action = "toggle-card";
+      tab.dataset.path = id;
+      tab.append(el("span", "ms-num", ""));
+      tab.append(el("span", "ms-title", title || "未命名"));
+      tab.append(el("span", "ms-hint", hint || ""));
+      const body = el("div", "ms-body");
+      body.hidden = !open;
+      nodes.forEach((node) => { if (node) body.append(node); });
+      row.append(tab, body);
+      return row;
+    }
+    function rememberCards() {
+      editor.querySelectorAll(".ms-row").forEach((node) => {
+        if (node.classList.contains("open")) openCards.add(node.dataset.card);
+        else openCards.delete(node.dataset.card);
+      });
+    }
+    function rememberFolds() {
+      editor.querySelectorAll("details.fold").forEach((node) => {
+        if (node.open) openFolds.add(node.dataset.fold);
+        else openFolds.delete(node.dataset.fold);
+      });
+    }
+    function renderForm() {
+      rememberFolds();
+      const focus = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.path : "";
+      editor.replaceChildren();
+      editor.append(el("p", "kicker", "稿纸 · 滚动编辑"));
+      const profile = state.profile;
+      const basicNodes = [
+        el("p", "keep", "姓名和联系方式会记在这台浏览器里，关掉页面也不会丢，也不会上传。"),
+        field("姓名", "profile.name", profile.name),
+        field("定位", "profile.headline", profile.headline, true),
+        field("方向", "profile.tagline", profile.tagline)
+      ];
+      (profile.contacts || []).forEach((item, index) => {
+        const id = `profile.contacts.${index}`;
+        basicNodes.push(manuscriptRow(id, item.label || "联系方式", clip(item.value), [
+          headerRow(item.label || "联系方式", id, index, profile.contacts.length),
+          field("标签", `${id}.label`, item.label),
+          field("内容", `${id}.value`, item.value),
+          field("链接", `${id}.url`, item.url)
+        ]));
+      });
+      const addContact = el("button", "linkish", "添加联系方式");
+      addContact.type = "button";
+      addContact.dataset.action = "add-contact";
+      basicNodes.push(addContact);
+      editor.append(manuscriptRow("section-basic", "基本信息", clip(profile.name), basicNodes));
+
+      const workNodes = [];
+      (state.experience || []).forEach((exp, expIndex) => {
+        const id = `experience.${expIndex}`;
+        const projectNodes = [
+          headerRow(exp.company || "公司", id, expIndex, state.experience.length),
+          field("公司", `${id}.company`, exp.company),
+          field("团队", `${id}.team`, exp.team),
+          field("时间", `${id}.dates`, exp.dates)
+        ];
+        (exp.projects || []).forEach((project, projectIndex) => {
+          const base = `${id}.projects.${projectIndex}`;
+          projectNodes.push(manuscriptRow(base, project.name || "项目", clip(project.subtitle), [
+            headerRow(project.name || "项目", base, projectIndex, exp.projects.length),
+            field("项目", `${base}.name`, project.name),
+            field("副标题", `${base}.subtitle`, project.subtitle),
+            bullets("背景", `${base}.background`, project.background),
+            bullets("指标", `${base}.impact`, project.impact),
+            bullets("职责", `${base}.responsibilities`, project.responsibilities),
+            listField("关键词", `${base}.keywords`, project.keywords)
+          ]));
+        });
+        const addProject = el("button", "linkish", "添加项目");
+        addProject.type = "button";
+        addProject.dataset.action = "add-work-project";
+        addProject.dataset.path = `${id}.projects`;
+        projectNodes.push(addProject);
+        workNodes.push(manuscriptRow(id, exp.company || "公司", clip(exp.dates), projectNodes));
+      });
+      const addJob = el("button", "linkish", "添加一段工作");
+      addJob.type = "button";
+      addJob.dataset.action = "add-job";
+      workNodes.push(addJob);
+      editor.append(manuscriptRow("section-work", "工作经历", clip((state.experience[0] || {}).company), workNodes));
+
+      const projectNodes = [];
+      (state.projects || []).forEach((project, index) => {
+        const base = `projects.${index}`;
+        projectNodes.push(manuscriptRow(base, project.name || "项目", clip(project.dates || project.role), [
+          headerRow(project.name || "项目", base, index, state.projects.length),
+          field("项目", `${base}.name`, project.name),
+          field("角色", `${base}.role`, project.role),
+          field("时间", `${base}.dates`, project.dates),
+          field("副标题", `${base}.subtitle`, project.subtitle),
+          bullets("描述", `${base}.description`, project.description),
+          field("技术栈", `${base}.stack`, project.stack, true),
+          bullets("职责", `${base}.responsibilities`, project.responsibilities),
+          bullets("亮点", `${base}.highlights`, project.highlights),
+          bullets("成果", `${base}.outcomes`, project.outcomes)
+        ]));
+      });
+      const addTech = el("button", "linkish", "添加技术项目");
+      addTech.type = "button";
+      addTech.dataset.action = "add-tech";
+      projectNodes.push(addTech);
+      editor.append(manuscriptRow("section-projects", "技术项目", clip((state.projects[0] || {}).name), projectNodes));
+
+      const skillNodes = [];
+      (state.skill_groups || []).forEach((group, index) => {
+        const id = `skill_groups.${index}`;
+        skillNodes.push(manuscriptRow(id, group.label || "分类", clip(group.items), [
+          headerRow(group.label || "分类", id, index, state.skill_groups.length),
+          field("分类", `${id}.label`, group.label),
+          field("内容", `${id}.items`, group.items, true)
+        ]));
+      });
+      const addSkill = el("button", "linkish", "添加技能分类");
+      addSkill.type = "button";
+      addSkill.dataset.action = "add-skill";
+      skillNodes.push(addSkill);
+      editor.append(manuscriptRow("section-skills", "技能", `${(state.skill_groups || []).length} 类`, skillNodes));
+
+      const eduNodes = [];
+      (state.education || []).forEach((item, index) => {
+        const id = `education.${index}`;
+        eduNodes.push(manuscriptRow(id, item.institution || "学校", clip(item.dates), [
+          headerRow(item.institution || "学校", id, index, state.education.length),
+          field("学校", `${id}.institution`, item.institution),
+          field("学位", `${id}.degree`, item.degree),
+          field("称号", `${id}.program`, item.program, true),
+          field("时间", `${id}.dates`, item.dates)
+        ]));
+      });
+      const addEdu = el("button", "linkish", "添加教育经历");
+      addEdu.type = "button";
+      addEdu.dataset.action = "add-edu";
+      eduNodes.push(addEdu);
+      editor.append(manuscriptRow("section-edu", "教育经历", clip((state.education[0] || {}).institution), eduNodes));
+
+      let visibleIndex = 0;
+      editor.querySelectorAll(".ms-num").forEach((node) => {
+        const row = node.closest(".ms-row");
+        let parent = row.parentElement;
+        let hidden = false;
+        while (parent && parent !== editor) {
+          if (parent.classList.contains("ms-body") && parent.hidden) {
+            hidden = true;
+            break;
+          }
+          parent = parent.parentElement;
+        }
+        if (hidden) {
+          node.textContent = "";
+          return;
+        }
+        visibleIndex += 1;
+        node.textContent = String(visibleIndex).padStart(2, "0");
+      });
+      editor.querySelectorAll("textarea.grow").forEach(fitTextarea);
+      if (focus) {
+        const next = editor.querySelector(`[data-path="${CSS.escape(focus)}"]`);
+        if (next) {
+          const fold = next.closest("details.fold");
+          if (fold) fold.open = true;
+          next.focus();
+          if (next.tagName === "TEXTAREA") fitTextarea(next);
+        }
+      }
+    }
+
+    function parentPath(path) {
+      return path.split(".").slice(0, -1);
+    }
+    function lookup(path) {
+      const parts = path.split(".");
+      let cur = state;
+      for (const part of parts) cur = cur[part];
+      return cur;
+    }
+    function mutate(action, path, delta) {
+      if (action === "add-contact") {
+        state.profile.contacts.push({ label: "其他", value: "", url: "" });
+        openCards.add("section-basic");
+        openCards.add(`profile.contacts.${state.profile.contacts.length - 1}`);
+      } else if (action === "add-job") {
+        state.experience.push({ company: "", team: "", dates: "", brand: "blue", tags: [], projects: [] });
+        openCards.add("section-work");
+        openCards.add(`experience.${state.experience.length - 1}`);
+      } else if (action === "add-work-project") {
+        const list = lookup(path);
+        list.push({ name: "", subtitle: "", background: [], impact: [], responsibilities: [], keywords: [] });
+        openCards.add(path.replace(/\.projects$/, ""));
+        openCards.add(`${path}.${list.length - 1}`);
+      } else if (action === "add-tech") {
+        state.projects.push({
+          name: "", role: "独立开发", dates: "", subtitle: "", description: [], stack: "",
+          responsibilities: [], highlights: [], outcomes: [], keywords: []
+        });
+        openCards.add("section-projects");
+        openCards.add(`projects.${state.projects.length - 1}`);
+      } else if (action === "add-skill") {
+        state.skill_groups.push({ label: "", items: "" });
+        openCards.add("section-skills");
+        openCards.add(`skill_groups.${state.skill_groups.length - 1}`);
+      } else if (action === "add-edu") {
+        state.education.push({ institution: "", degree: "", program: "", dates: "", source_note: "网页编辑器" });
+        openCards.add("section-edu");
+        openCards.add(`education.${state.education.length - 1}`);
+      } else if (action === "add-bullet") {
+        openFolds.add(path);
+        lookup(path).push(blankBullet());
+      } else if (action === "remove" || action === "move") {
+        const parts = path.split(".");
+        const index = Number(parts.pop());
+        const list = lookup(parts.join("."));
+        if (action === "remove") list.splice(index, 1);
+        else {
+          const next = index + Number(delta);
+          if (next < 0 || next >= list.length) return;
+          const [item] = list.splice(index, 1);
+          list.splice(next, 0, item);
+        }
+      }
+      markDirty();
+      renderForm();
+      push();
+      if (action === "add-contact" || path.startsWith("profile.")) scheduleProfileSave();
+    }
+
+    function stampList(list, originList) {
+      return (list || []).flatMap((item) => {
+        const text = String(textOf(item)).trim();
+        if (!text) return [];
+        const prev = (originList || []).find((entry) => entry && entry.text === text);
+        return [prev ? { ...prev, text } : { text, verification: "user_attested", source_note: "网页编辑器" }];
+      });
+    }
+    function payloadForSave() {
+      const data = structuredClone(state);
+      const originJobs = origin.experience || [];
+      data.experience.forEach((exp, expIndex) => {
+        const originExp = originJobs[expIndex] || { projects: [] };
+        exp.projects.forEach((project, projectIndex) => {
+          const originProject = (originExp.projects || [])[projectIndex] || {};
+          project.background = stampList(project.background, originProject.background);
+          project.impact = stampList(project.impact, originProject.impact);
+          project.responsibilities = stampList(project.responsibilities, originProject.responsibilities);
+          project.keywords = (project.keywords || []).map((item) => String(item).trim()).filter(Boolean);
+        });
+      });
+      data.projects.forEach((project, index) => {
+        const prev = (origin.projects || [])[index] || {};
+        project.description = stampList(project.description, prev.description);
+        project.responsibilities = stampList(project.responsibilities, prev.responsibilities);
+        project.highlights = stampList(project.highlights, prev.highlights);
+        project.outcomes = stampList(project.outcomes, prev.outcomes);
+      });
+      data.skills = (data.skill_groups || []).map((group) => `${group.label}：${group.items}`);
+      return data;
+    }
+
+    async function save() {
+      const body = payloadForSave();
+      if (!String(body.profile && body.profile.name || "").trim()) throw new Error("姓名不能为空");
+      localStorage.setItem(RESUME_KEY, JSON.stringify(body));
+      writeProfile(body.profile);
+      state = body;
+      origin = structuredClone(body);
+      dirty = false;
+      renderForm();
+      push();
+      setStatus("已保存在这台浏览器", false);
+    }
+    function loadData(data) {
+      if (!data || typeof data !== "object" || !data.profile || typeof data.profile !== "object") {
+        throw new Error("这个文件不是简历");
+      }
+      state = data;
+      origin = structuredClone(data);
+      state.experience ||= [];
+      state.projects ||= [];
+      state.education ||= [];
+      state.skill_groups ||= [];
+      state.profile.contacts ||= [];
+      localStorage.setItem(RESUME_KEY, JSON.stringify(state));
+      writeProfile(state.profile);
+      dirty = false;
+      renderForm();
+      push();
+    }
+
+    editor.addEventListener("input", (event) => {
+      const target = event.target;
+      if (!target.dataset.path) return;
+      if (target.tagName === "TEXTAREA") fitTextarea(target);
+      if (target.dataset.kind === "list") {
+        setPath(target.dataset.path, target.value.split(/[·,，]/).map((item) => item.trim()).filter(Boolean));
+      } else {
+        setPath(target.dataset.path, target.value);
+      }
+    });
+    editor.addEventListener("toggle", (event) => {
+      const node = event.target;
+      if (!node.classList || !node.classList.contains("fold")) return;
+      if (node.open) {
+        openFolds.add(node.dataset.fold);
+        node.querySelectorAll("textarea.grow").forEach(fitTextarea);
+      } else {
+        openFolds.delete(node.dataset.fold);
+      }
+    }, true);
+    editor.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button || !button.dataset.action) return;
+      if (button.dataset.action === "toggle-card") {
+        const id = button.dataset.path;
+        if (openCards.has(id)) openCards.delete(id);
+        else openCards.add(id);
+        renderForm();
+        return;
+      }
+      mutate(button.dataset.action, button.dataset.path || "", button.dataset.delta);
+    });
+    document.getElementById("save").addEventListener("click", () => {
+      save().catch((error) => setStatus(error.message, true));
+    });
+    const pdfDialog = document.getElementById("pdf-dialog");
+    const pdfForm = document.getElementById("pdf-form");
+    const pdfName = document.getElementById("pdf-name");
+    const pdfError = document.getElementById("pdf-error");
+    function askPdfName() {
+      const base = (state && state.profile && state.profile.name ? state.profile.name : "简历").trim() || "简历";
+      pdfName.value = base.endsWith(".pdf") ? base : base + ".pdf";
+      pdfError.textContent = "";
+      pdfDialog.hidden = false;
+      pdfName.focus();
+      pdfName.select();
+      return new Promise((resolve) => {
+        const finish = (name) => {
+          pdfDialog.hidden = true;
+          pdfForm.onsubmit = null;
+          document.getElementById("pdf-cancel").onclick = null;
+          resolve(name);
+        };
+        pdfForm.onsubmit = (event) => {
+          event.preventDefault();
+          const name = pdfName.value.trim();
+          if (!name) {
+            pdfError.textContent = "请输入 PDF 文件名";
+            return;
+          }
+          finish(name);
+        };
+        document.getElementById("pdf-cancel").onclick = () => finish(null);
+      });
+    }
+    document.getElementById("pdf").addEventListener("click", async () => {
+      const name = await askPdfName();
+      if (!name) return;
+      try {
+        await save();
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+        setStatus("请在打印窗口里存储为 PDF", false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+    document.getElementById("import").addEventListener("click", () => {
+      document.getElementById("import-file").click();
+    });
+    document.getElementById("import-file").addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = "";
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          loadData(JSON.parse(String(reader.result || "")));
+          setStatus("已从本机文件导入", false);
+        } catch (error) {
+          setStatus(error.message || "导入失败", true);
+        }
+      };
+      reader.readAsText(file);
+    });
+    document.getElementById("export").addEventListener("click", () => {
+      try {
+        const body = payloadForSave();
+        const blob = new Blob([JSON.stringify(body, null, 2) + "\n"], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        const base = (body.profile && body.profile.name ? body.profile.name : "简历").trim() || "简历";
+        link.download = base + ".json";
+        link.click();
+        URL.revokeObjectURL(link.href);
+        setStatus("文件已下载到本机", false);
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+    document.getElementById("print").addEventListener("click", () => {
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+    });
+    document.addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        save().catch((error) => setStatus(error.message, true));
+      }
+    });
+    frame.addEventListener("load", () => {
+      frameReady = true;
+      fitPreview();
+      push();
+    });
+    window.addEventListener("resize", fitPreview);
+    try {
+      const saved = localStorage.getItem(RESUME_KEY);
+      const profileRaw = localStorage.getItem(PROFILE_KEY);
+      const data = saved ? JSON.parse(saved) : blankResume();
+      if (profileRaw) data.profile = JSON.parse(profileRaw);
+      loadData(data);
+      setStatus(saved || profileRaw ? "已载入" : "还是空白，可以导入本机简历", false);
+    } catch (error) {
+      setStatus("没有读到简历", true);
+    }
+  </script>
+</body>
+</html>
