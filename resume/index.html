@@ -52,6 +52,17 @@
       font-size: 13px;
     }
     .btn.primary { background: var(--rust); color: white; border-color: var(--rust); }
+    .version-select {
+      border: 1px solid var(--line);
+      background: transparent;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--ink);
+      max-width: 12em;
+      cursor: pointer;
+    }
     .workspace { height: calc(100% - 52px); display: grid; grid-template-columns: 35% 1fr; }
     .editor { overflow: auto; background: var(--paper); padding: 28px 32px 80px 18px; }
     .kicker {
@@ -182,6 +193,8 @@
   <header class="top">
     <div class="brand">稿纸</div>
     <div class="hint">只保存在这台浏览器里，不会上传</div>
+    <select id="version-select" class="version-select" title="切换版本"></select>
+    <button class="btn" id="new-version" type="button" title="把当前简历另存为一个版本">另存为</button>
     <div class="spacer"></div>
     <div id="status" class="status">已载入</div>
     <button class="btn" id="import" type="button">导入</button>
@@ -282,6 +295,10 @@
     }
     const RESUME_KEY = "worldcore-resume";
     const PROFILE_KEY = "worldcore-profile";
+    const VERSIONS_KEY = "worldcore-versions";
+    const CURRENT_VERSION_KEY = "worldcore-current-version";
+    let currentVersion = "";
+    let versions = {};
     function blankResume() {
       return {
         mode: "source_grounded",
@@ -694,6 +711,66 @@
       push();
     }
 
+    function readVersions() {
+      try { versions = JSON.parse(localStorage.getItem(VERSIONS_KEY) || "{}"); }
+      catch (_) { versions = {}; }
+      if (!versions || typeof versions !== "object") versions = {};
+      currentVersion = localStorage.getItem(CURRENT_VERSION_KEY) || "";
+    }
+    function writeVersions() {
+      localStorage.setItem(VERSIONS_KEY, JSON.stringify(versions));
+      localStorage.setItem(CURRENT_VERSION_KEY, currentVersion || "");
+    }
+    function stashCurrent() {
+      if (!currentVersion) return;
+      versions[currentVersion] = structuredClone(payloadForSave());
+      writeVersions();
+    }
+    function renderVersionSelect() {
+      const sel = document.getElementById("version-select");
+      if (!sel) return;
+      sel.replaceChildren();
+      const names = Object.keys(versions);
+      if (!names.length) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "（还没有版本）";
+        sel.append(opt);
+        sel.disabled = true;
+        return;
+      }
+      sel.disabled = false;
+      names.forEach((name) => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        if (name === currentVersion) opt.selected = true;
+        sel.append(opt);
+      });
+    }
+    function switchToVersion(name) {
+      if (!name) return;
+      stashCurrent();
+      currentVersion = name;
+      writeVersions();
+      const data = versions[name] || blankResume();
+      loadData(data);
+      renderVersionSelect();
+      setStatus(`已切到「${name}」`, false);
+    }
+    function saveAsVersion() {
+      const name = prompt("给这个版本起个名（如：数据开发 / Java 全栈）", currentVersion || "");
+      if (name === null) return;
+      const clean = name.trim();
+      if (!clean) return;
+      if (currentVersion && currentVersion !== clean) stashCurrent();
+      versions[clean] = structuredClone(payloadForSave());
+      currentVersion = clean;
+      writeVersions();
+      renderVersionSelect();
+      setStatus(`已另存为「${clean}」`, false);
+    }
+
     editor.addEventListener("input", (event) => {
       const target = event.target;
       if (!target.dataset.path) return;
@@ -729,6 +806,10 @@
     document.getElementById("save").addEventListener("click", () => {
       save().catch((error) => setStatus(error.message, true));
     });
+    document.getElementById("version-select").addEventListener("change", (event) => {
+      switchToVersion(event.target.value);
+    });
+    document.getElementById("new-version").addEventListener("click", saveAsVersion);
     const pdfDialog = document.getElementById("pdf-dialog");
     const pdfForm = document.getElementById("pdf-form");
     const pdfName = document.getElementById("pdf-name");
@@ -821,11 +902,18 @@
     });
     window.addEventListener("resize", fitPreview);
     try {
+      readVersions();
       const saved = localStorage.getItem(RESUME_KEY);
       const profileRaw = localStorage.getItem(PROFILE_KEY);
       const data = saved ? JSON.parse(saved) : blankResume();
       if (profileRaw) data.profile = JSON.parse(profileRaw);
+      if (saved && !currentVersion) {
+        currentVersion = "默认";
+        versions[currentVersion] = structuredClone(data);
+        writeVersions();
+      }
       loadData(data);
+      renderVersionSelect();
       setStatus(saved || profileRaw ? "已载入" : "还是空白，可以导入本机简历", false);
     } catch (error) {
       setStatus("没有读到简历", true);
